@@ -1,20 +1,17 @@
 package gopc
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
 )
 
 var envs = map[string]string{
-	"production":   "https://payconiq-app.com",
-	"homologation": "https://homologation.payconiq-app.com",
+	"production": "https://api.payconiq.com",
+	"external":   "https://api.ext.payconiq.com",
 }
 
-func (c *Client) Init(publicVendorToken string, privateVendorToken string, env string) {
-	c.identity.PublicVendorToken = publicVendorToken
-	c.identity.PrivateVendorToken = privateVendorToken
+func (c *Client) Init(apiKey string, env string) {
+	c.identity.ApiKey = apiKey
 	c.env = env
 	endpoint, ok := envs[env]
 	if !ok {
@@ -27,16 +24,28 @@ func (c *Client) Init(publicVendorToken string, privateVendorToken string, env s
 }
 
 func (c *Client) isIdentified() bool {
-	return len(c.identity.PublicVendorToken) > 0
+	return len(c.identity.ApiKey) > 0
 }
 
-func (c *Client) request(uri string, data url.Values, result interface{}) error {
-	res, err := http.Post(c.endpoint+"/api"+uri, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
+func (c *Client) request(uri string, method string, data interface{}, result interface{}) error {
+	url := c.endpoint + "/v3" + uri
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		fmt.Println("Error creating request:", err)
 		return err
 	}
-	err = json.NewDecoder(res.Body).Decode(&result)
+	req.Header.Set("Authorization", "Bearer "+c.identity.ApiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
 	if err != nil {
+		fmt.Println("Error making request:", err)
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		fmt.Printf("HTTP code %d\n", res.StatusCode)
 		return err
 	}
 	return nil

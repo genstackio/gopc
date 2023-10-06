@@ -3,6 +3,7 @@ package gopc
 import (
 	"errors"
 	"net/url"
+	"time"
 )
 
 func (c *Client) CreateRequest(data url.Values) (*Request, error) {
@@ -15,9 +16,9 @@ func (c *Client) CreateRequest(data url.Values) (*Request, error) {
 			re.Set(k, "")
 		}
 	}
-	re.Set("vendor_token", c.identity.PublicVendorToken)
+	re.Set("vendor_token", c.identity.ApiKey)
 
-	err := c.request("/request/do.json", re, &response)
+	err := c.request("/payments/unknow", "GET", re, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -27,12 +28,63 @@ func (c *Client) CreateRequest(data url.Values) (*Request, error) {
 	return &response, nil
 }
 
+type Payment struct {
+	PaymentId   string    `json:"paymentId"`
+	CreatedAt   time.Time `json:"createdAt"`
+	ExpireAt    time.Time `json:"expireAt"`
+	SucceededAt time.Time `json:"succeededAt"`
+	Currency    string    `json:"currency"`
+	Status      string    `json:"status"`
+	Creditor    struct {
+		ProfileId   string `json:"profileId"`
+		MerchantId  string `json:"merchantId"`
+		Name        string `json:"name"`
+		Iban        string `json:"iban"`
+		CallbackUrl string `json:"callbackUrl"`
+	} `json:"creditor"`
+	Debtor struct {
+		Name string `json:"name"`
+		Iban string `json:"iban"`
+	} `json:"debtor"`
+	Amount         int    `json:"amount"`
+	TransferAmount int    `json:"transferAmount"`
+	TippingAmount  int    `json:"tippingAmount"`
+	TotalAmount    int    `json:"totalAmount"`
+	Description    string `json:"description"`
+	BulkId         string `json:"bulkId"`
+	Links          struct {
+		Self struct {
+			Href string `json:"href"`
+		} `json:"self"`
+		Deeplink struct {
+			Href string `json:"href"`
+		} `json:"deeplink"`
+		Qrcode struct {
+			Href string `json:"href"`
+		} `json:"qrcode"`
+		Refund struct {
+			Href string `json:"href"`
+		} `json:"refund"`
+	} `json:"_links"`
+}
+
+func (c *Client) GetPaymentDetails(paymentId string) (*Payment, error) {
+	var result Payment
+	err := c.request("/payments/"+paymentId, "get", nil, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+//
+
 func (c *Client) GetRequestState(id string) (*RequestState, error) {
 	var res RequestState
 	var re = url.Values{}
 	re.Set("request_id", id)
-	re.Set("vendor_token", c.identity.PublicVendorToken)
-	err := c.request("/request/state.json", re, &res)
+	re.Set("vendor_token", c.identity.ApiKey)
+	err := c.request("/request/state.json", "post", re, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -42,18 +94,18 @@ func (c *Client) GetRequestStateByOrderRef(orderRef string) (*RequestState, erro
 	var res RequestState
 	var re = url.Values{}
 	re.Set("order_ref", orderRef)
-	re.Set("vendor_token", c.identity.PublicVendorToken)
-	err := c.request("/request/state.json", re, &res)
+	re.Set("vendor_token", c.identity.ApiKey)
+	err := c.request("/request/state.json", "post", re, &res)
 	if err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 func (c *Client) BuildSignature(data *map[string]string) (string, error) {
-	if len(c.identity.PrivateVendorToken) == 0 {
-		return "", errors.New("no private vendor token specified")
+	if len(c.identity.ApiKey) == 0 {
+		return "", errors.New("no api key specified")
 	}
-	return buildSignature(data, c.identity.PrivateVendorToken), nil
+	return buildSignature(data, c.identity.ApiKey), nil
 }
 func (c *Client) GetB2CBalance() (*map[string]float64, error) {
 	var res struct {
@@ -61,10 +113,10 @@ func (c *Client) GetB2CBalance() (*map[string]float64, error) {
 		Balance map[string]float64 `json:"balance,omitempty"`
 	}
 	var re = url.Values{}
-	re.Set("vendor_token", c.identity.PublicVendorToken)
-	signature, err := c.BuildSignature(&map[string]string{"vendor_token": c.identity.PublicVendorToken})
+	re.Set("vendor_token", c.identity.ApiKey)
+	signature, err := c.BuildSignature(&map[string]string{"vendor_token": c.identity.ApiKey})
 	re.Set("signature", signature)
-	err = c.request("/business/b2cbalance.json", re, &res)
+	err = c.request("/business/b2cbalance.json", "post", re, &res)
 	if err != nil {
 		return nil, err
 	}

@@ -2,10 +2,11 @@ package gopc
 
 import "sort"
 
-func TestApiCredentials(publicVendorToken string, privateVendorToken string, env string) (bool, error) {
+func TestApiCredentials(apiKey string, env string) (bool, error) {
 	c := Client{}
-	c.Init(publicVendorToken, privateVendorToken, env)
-	_, err := c.GetB2CBalance()
+	c.Init(apiKey, env)
+
+	_, err := c.GetPaymentDetails("unknown")
 
 	if err != nil {
 		return false, err
