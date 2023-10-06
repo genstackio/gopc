@@ -11,8 +11,7 @@ type ClientOptions struct {
 	MinExpirationDelay int64
 }
 type ClientIdentity struct {
-	PublicVendorToken  string
-	PrivateVendorToken string
+	ApiKey string
 }
 
 type FetchOptions struct {
