@@ -1,3 +1,3 @@
-module github.com/genstackio/goly
+module github.com/genstackio/gopc
 
 go 1.17

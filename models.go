@@ -1,4 +1,4 @@
-package goly
+package gopc
 
 type Request struct {
 	Error       string `json:"error"`
