@@ -1,4 +1,4 @@
-package goly
+package gopc
 
 import (
 	"encoding/json"
@@ -8,8 +8,8 @@ import (
 )
 
 var envs = map[string]string{
-	"production":   "https://lydia-app.com",
-	"homologation": "https://homologation.lydia-app.com",
+	"production":   "https://payconiq-app.com",
+	"homologation": "https://homologation.payconiq-app.com",
 }
 
 func (c *Client) Init(publicVendorToken string, privateVendorToken string, env string) {

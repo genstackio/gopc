@@ -3,7 +3,7 @@ platform_temp = $(subst -, ,$(ARCH))
 GOOS = $(word 1, $(platform_temp))
 GOARCH = $(word 2, $(platform_temp))
 GOPROXY = https://proxy.golang.org
-BIN ?= goly
+BIN ?= gopc
 
 export CI
 

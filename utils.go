@@ -1,4 +1,4 @@
-package goly
+package gopc
 
 import "sort"
 

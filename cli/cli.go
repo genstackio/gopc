@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/genstackio/goly"
+	"github.com/genstackio/gopc"
 	"net/url"
 	"os"
 )
@@ -19,7 +19,7 @@ func main() {
 	action := os.Args[4]
 	switch action {
 	case "create-request":
-		c := goly.Client{}
+		c := gopc.Client{}
 		c.Init(publicVendorToken, privateVendorToken, env)
 		var data url.Values
 		r, err := c.CreateRequest(data)
@@ -29,7 +29,7 @@ func main() {
 		}
 		fmt.Println(r)
 	case "get-b2c-balance":
-		c := goly.Client{}
+		c := gopc.Client{}
 		c.Init(publicVendorToken, privateVendorToken, env)
 		r, err := c.GetB2CBalance()
 		if err != nil {
@@ -43,7 +43,7 @@ func main() {
 		}
 		fmt.Println(string(j))
 	case "test-credentials":
-		ok, err := goly.TestApiCredentials(publicVendorToken, privateVendorToken, env)
+		ok, err := gopc.TestApiCredentials(publicVendorToken, privateVendorToken, env)
 
 		if !ok {
 			fmt.Println("NOK - Bad credentials:" + err.Error())
